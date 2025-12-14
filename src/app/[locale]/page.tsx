@@ -43,7 +43,7 @@ export default function Home() {
             {/* Placeholder for Hero Image */}
             <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl bg-neutral-200">
               <div className="absolute inset-0 bg-gradient-to-tr from-black/10 to-transparent"></div>
-              <img src="/assets/images/placeholder_recipe_1.jpg" alt="Lezzetli Yemekler" className="object-cover w-full h-full" />
+              <img src="/assets/images/recipe_1.png" alt="Lezzetli Yemekler" className="object-cover w-full h-full" />
 
               {/* Floating Badge */}
               <div className="absolute bottom-6 left-6 bg-white p-4 rounded-xl shadow-xl flex items-center gap-3">
@@ -106,7 +106,7 @@ export default function Home() {
             {[1, 2, 3].map((i) => (
               <Card key={i} className="overflow-hidden hover:shadow-lg transition-shadow border-none shadow-md">
                 <div className="aspect-[16/10] bg-neutral-200 relative">
-                  <img src={`/assets/images/placeholder_recipe_${i}.jpg`} alt="Tarif" className="object-cover w-full h-full" />
+                  <img src={`/assets/images/recipe_${i}.png`} alt="Tarif" className="object-cover w-full h-full" />
                   <Badge className="absolute top-3 left-3 bg-white/90 text-neutral-900 border-none shadow-sm font-medium px-2">
                     <Clock className="w-3 h-3 mr-1" /> 30 dk
                   </Badge>
