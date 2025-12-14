@@ -5,20 +5,14 @@ import { useFunnelStore } from "@/store/funnel-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Filter, ChevronRight, CheckCircle, Plus, Info, Sparkles, Trash2, Clock, Flame } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Plus, Minus, Info, Check, ArrowRight, CheckCircle, Clock, Flame, ChevronRight, Sparkles, Trash2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { RECIPES } from "@/lib/mock-data";
 
-// Mock Recipes
-const MOCK_RECIPES = [
-    { id: "1", name: "Mantarlı Tavuk Sote", description: "Basmati pilav ve taze kekik ile", image: "/assets/images/placeholder_recipe_select_1.jpg", time: "25 dk", calories: 650, tags: ["Proteini Bol"], price: 115.00 },
-    { id: "2", name: "Ege Usulü Sebze Kasesi", description: "Avokado ve kinoa eşliğinde", image: "/assets/images/placeholder_recipe_select_2.jpg", time: "15 dk", calories: 420, tags: ["Şefin Seçimi"], price: 105.00 },
-    { id: "3", name: "Fesleğenli Makarna", description: "Ev yapımı domates sosu ile", image: "/assets/images/placeholder_recipe_select_1.jpg", time: "20 dk", calories: 550, tags: ["Vejetaryen"], price: 95.00 },
-    { id: "4", name: "Izgara Köfte Tabağı", description: "Piyaz ve közlenmiş biber ile", image: "/assets/images/placeholder_recipe_select_2.jpg", time: "35 dk", calories: 720, tags: [], price: 130.00 },
-    { id: "5", name: "Fırında Somon", description: "Kuşkonmaz ve limon sosu ile", image: "/assets/images/placeholder_recipe_select_1.jpg", time: "30 dk", calories: 580, tags: ["Deniz Ürünü"], price: 145.00 },
-    { id: "6", name: "Acılı Dana Eti Wok", description: "Noodle ve mevsim sebzeleri ile", image: "/assets/images/placeholder_recipe_select_2.jpg", time: "20 dk", calories: 600, tags: ["Acı"], price: 125.00 },
-];
 
 export default function SelectRecipesPage() {
     const {
@@ -45,7 +39,7 @@ export default function SelectRecipesPage() {
     };
 
     const totalPrice = menuSelection.reduce((acc, item) => {
-        const recipe = MOCK_RECIPES.find(r => r.id === item.id);
+        const recipe = RECIPES.find(r => r.id === item.id);
         return acc + (recipe ? recipe.price * item.quantity : 0);
     }, 0);
 
@@ -69,14 +63,14 @@ export default function SelectRecipesPage() {
 
                     {/* Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {MOCK_RECIPES.map((recipe) => {
+                        {RECIPES.map((recipe) => {
                             const selection = menuSelection.find(s => s.id === recipe.id);
                             const qty = selection?.quantity || 0;
 
                             return (
                                 <Card key={recipe.id} className={cn("overflow-hidden border-2 transition-all hover:shadow-md", qty > 0 ? "border-lime-500" : "border-transparent")}>
                                     <div className="aspect-[4/3] relative">
-                                        <img src={recipe.image} alt={recipe.name} className="w-full h-full object-cover" />
+                                        <Image src={recipe.image} alt={recipe.name} fill className="w-full h-full object-cover" />
                                         {recipe.tags.map((tag, i) => (
                                             <Badge key={i} className="absolute top-3 left-3 bg-white text-neutral-900 hover:bg-white shadow-sm font-bold">
                                                 {tag}
@@ -147,11 +141,11 @@ export default function SelectRecipesPage() {
                         ) : (
                             <div className="space-y-4 mb-6">
                                 {menuSelection.map((item) => {
-                                    const recipe = MOCK_RECIPES.find(r => r.id === item.id);
+                                    const recipe = RECIPES.find(r => r.id === item.id);
                                     if (!recipe) return null;
                                     return (
                                         <div key={item.id} className="flex gap-3 items-start group">
-                                            <img src={recipe.image} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                                            <Image src={recipe.image} alt="" width={48} height={48} className="w-12 h-12 rounded-lg object-cover" />
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-bold truncate">{recipe.name}</p>
                                                 <p className="text-xs text-neutral-500">{item.quantity} Porsiyon</p>

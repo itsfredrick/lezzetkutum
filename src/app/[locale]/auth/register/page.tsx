@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Facebook, Github } from "lucide-react";
 
 import { useState } from "react";
@@ -99,7 +100,13 @@ export default function RegisterPage() {
 
             {/* Right: Feature Image */}
             <div className="hidden lg:block relative bg-lime-900">
-                <img src="/assets/images/placeholder_recipe_select_2.jpg" className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay" />
+                <Image
+                    src="/assets/images/placeholder_recipe_select_2.jpg"
+                    alt="Healthy food background"
+                    fill
+                    className="object-cover opacity-60 mix-blend-overlay"
+                    priority
+                />
                 <div className="relative h-full flex flex-col justify-end p-16 text-white space-y-4 z-10">
                     <h2 className="text-4xl font-bold leading-tight">
                         "Sağlıklı beslenmek artık çok kolay ve lezzetli."

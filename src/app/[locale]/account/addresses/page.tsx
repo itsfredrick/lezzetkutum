@@ -61,14 +61,21 @@ export default function AddressesPage() {
 
         if (editingId) {
             // Edit Mode
-            setAddresses(prev => prev.map(addr => addr.id === editingId ? { ...addr, title: formData.title, fullAddress: formData.address, city: formData.city, district: formData.district, type: formData.type as any } : addr));
+            setAddresses(prev => prev.map(addr => addr.id === editingId ? {
+                ...addr,
+                title: formData.title,
+                fullAddress: formData.address,
+                city: formData.city,
+                district: formData.district,
+                type: formData.type as Address['type'] // Safe cast since radio options are controlled
+            } : addr));
             toast.success("Adres güncellendi.");
         } else {
             // Add Mode
             const newAddr: Address = {
                 id: Math.random().toString(36).substr(2, 9),
                 title: formData.title,
-                type: formData.type as any,
+                type: formData.type as Address['type'],
                 fullAddress: formData.address,
                 city: formData.city,
                 district: formData.district,

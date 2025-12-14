@@ -8,21 +8,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { ChevronRight, ArrowRight, Lock, CreditCard, Wallet, BadgeCheck, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useFunnelStore } from "@/store/funnel-store";
-
-// Mock Recipes (Duplicated for now)
-const MOCK_RECIPES = [
-    { id: "1", name: "Mantarlı Tavuk Sote", description: "Basmati pilav ve taze kekik ile", image: "/assets/images/placeholder_recipe_select_1.jpg", time: "25 dk", calories: 650, tags: ["Proteini Bol"], price: 115.00 },
-    { id: "2", name: "Ege Usulü Sebze Kasesi", description: "Avokado ve kinoa eşliğinde", image: "/assets/images/placeholder_recipe_select_2.jpg", time: "15 dk", calories: 420, tags: ["Şefin Seçimi"], price: 105.00 },
-    { id: "3", name: "Fesleğenli Makarna", description: "Ev yapımı domates sosu ile", image: "/assets/images/placeholder_recipe_select_1.jpg", time: "20 dk", calories: 550, tags: ["Vejetaryen"], price: 95.00 },
-    { id: "4", name: "Izgara Köfte Tabağı", description: "Piyaz ve közlenmiş biber ile", image: "/assets/images/placeholder_recipe_select_2.jpg", time: "35 dk", calories: 720, tags: [], price: 130.00 },
-    { id: "5", name: "Fırında Somon", description: "Kuşkonmaz ve limon sosu ile", image: "/assets/images/placeholder_recipe_select_1.jpg", time: "30 dk", calories: 580, tags: ["Deniz Ürünü"], price: 145.00 },
-    { id: "6", name: "Acılı Dana Eti Wok", description: "Noodle ve mevsim sebzeleri ile", image: "/assets/images/placeholder_recipe_select_2.jpg", time: "20 dk", calories: 600, tags: ["Acı"], price: 125.00 },
-];
+import { RECIPES, calculateOrderTotal } from "@/lib/mock-data";
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -33,7 +25,7 @@ export default function CheckoutPage() {
 
     // Calculate Totals
     const subTotal = menuSelection.reduce((acc, item) => {
-        const recipe = MOCK_RECIPES.find(r => r.id === item.id);
+        const recipe = RECIPES.find(r => r.id === item.id);
         return acc + (recipe ? recipe.price * item.quantity : 0);
     }, 0);
 
@@ -149,11 +141,11 @@ export default function CheckoutPage() {
 
                             <div className="space-y-4 mb-6">
                                 {menuSelection.map(item => {
-                                    const recipe = MOCK_RECIPES.find(r => r.id === item.id);
+                                    const recipe = RECIPES.find(r => r.id === item.id);
                                     if (!recipe) return null;
                                     return (
                                         <div key={item.id} className="flex gap-3 py-3 border-b border-neutral-100">
-                                            <img src={recipe.image} className="w-16 h-16 rounded-lg object-cover" />
+                                            <Image src={recipe.image} alt={recipe.name} width={64} height={64} className="w-16 h-16 rounded-lg object-cover" />
                                             <div className="flex-1">
                                                 <div className="font-bold text-sm">{recipe.name}</div>
                                                 <div className="text-xs text-neutral-500">{item.quantity} Porsiyon</div>
