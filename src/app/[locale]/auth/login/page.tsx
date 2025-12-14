@@ -6,25 +6,12 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Facebook, Github, Mail } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useActionState } from "react";
+import { authenticate } from "@/app/actions/auth-actions";
 
 export default function LoginPage() {
-    const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        // Mock API Call
-        setTimeout(() => {
-            setIsLoading(false);
-            toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
-            router.push('/account');
-        }, 1500);
-    };
+    // New React 19 hook for server actions
+    const [state, dispatch, isPending] = useActionState(authenticate, undefined);
 
     return (
         <div className="min-h-screen grid lg:grid-cols-2">
@@ -40,21 +27,32 @@ export default function LoginPage() {
                         <p className="text-neutral-500">Lezzet dolu dünyanıza giriş yapın.</p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form action={dispatch} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="email">E-posta Adresi</Label>
-                            <Input id="email" placeholder="ornek@email.com" type="email" required />
+                            <Input id="email" name="email" placeholder="ornek@email.com" type="email" required />
                         </div>
                         <div className="space-y-2">
                             <div className="flex justify-between items-center">
                                 <Label htmlFor="password">Şifre</Label>
                                 <Link href="#" className="text-xs font-bold text-lime-600 hover:underline">Şifremi Unuttum</Link>
                             </div>
-                            <Input id="password" type="password" required />
+                            <Input id="password" name="password" type="password" required />
                         </div>
 
-                        <Button type="submit" disabled={isLoading} className="w-full font-bold h-11 text-base">
-                            {isLoading ? "Giriş Yapılıyor..." : "Giriş Yap"}
+                        {state?.message && !state?.success && (
+                            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg font-medium">
+                                {state.message}
+                            </div>
+                        )}
+                        {state?.success && (
+                            <div className="bg-green-50 text-green-600 text-sm p-3 rounded-lg font-medium">
+                                {state.message}
+                            </div>
+                        )}
+
+                        <Button type="submit" disabled={isPending} className="w-full font-bold h-11 text-base">
+                            {isPending ? "Giriş Yapılıyor..." : "Giriş Yap"}
                         </Button>
                     </form>
 

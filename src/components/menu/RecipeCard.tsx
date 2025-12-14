@@ -1,4 +1,5 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, BarChart, Flame, Leaf, User, Heart } from "lucide-react";
@@ -39,9 +40,10 @@ export function RecipeCard({
     return (
         <Card className={cn("overflow-hidden flex flex-col h-full group transition-all duration-300 hover:shadow-lg border-neutral-200", isSelected && "ring-2 ring-primary border-primary")}>
             <div className="relative aspect-[16/10] bg-neutral-100 overflow-hidden">
-                <img
+                <Image
                     src={imageUrl}
                     alt={name}
+                    fill
                     className={cn("object-cover w-full h-full transition-transform duration-500 group-hover:scale-105", isLocked && "grayscale")}
                 />
 
@@ -77,7 +79,7 @@ export function RecipeCard({
                 </div>
 
                 <h3 className="font-bold text-neutral-800 leading-tight group-hover:text-primary transition-colors">
-                    <Link href={`/recipes/${slug}`} className="before:absolute before:inset-0">
+                    <Link href={`/tarifler/${slug}`} className="before:absolute before:inset-0">
                         {name}
                     </Link>
                 </h3>
@@ -86,7 +88,7 @@ export function RecipeCard({
             <CardFooter className="p-4 pt-0 mt-auto">
                 {onSelect ? (
                     <Button
-                        onClick={(e) => { e.preventDefault(); onSelect(); }}
+                        onClick={(e: React.MouseEvent) => { e.preventDefault(); onSelect(); }}
                         className={cn("w-full rounded-lg font-bold z-10 relative", isSelected ? "bg-primary text-white" : "bg-neutral-100 text-neutral-900 hover:bg-primary hover:text-white")}
                         disabled={isLocked}
                     >
@@ -98,7 +100,7 @@ export function RecipeCard({
                         className="w-full rounded-lg font-bold z-10 relative bg-neutral-100 text-neutral-900 hover:bg-primary hover:text-white"
                         disabled={isLocked}
                     >
-                        <Link href={`/recipes/${slug}`}>İncele</Link>
+                        <Link href={`/tarifler/${slug}`}>İncele</Link>
                     </Button>
                 )}
             </CardFooter>

@@ -14,7 +14,7 @@ export function Header() {
                     <Link href="/how-it-works" className="text-sm font-medium hover:text-primary transition-colors">Nasıl Çalışır?</Link>
                     <Link href="/menu" className="text-sm font-medium hover:text-primary transition-colors">Menü</Link>
                     <Link href="/plans-pricing" className="text-sm font-medium hover:text-primary transition-colors">Paketler</Link>
-                    <Link href="/recipes" className="text-sm font-medium hover:text-primary transition-colors">Tarifler</Link>
+                    <Link href="/tarifler" className="text-sm font-medium hover:text-primary transition-colors">Tarifler</Link>
                 </nav>
 
                 {/* Right Actions */}
@@ -23,7 +23,7 @@ export function Header() {
 
                     {/* Demo: Show generic 'Hesabım' to simulate logged in user, alongside Login for testing */}
                     <Button variant="ghost" size="sm" asChild className="hidden lg:flex">
-                        <Link href="/account">Hesabım</Link>
+                        <Link href="/hesabim">Hesabım</Link>
                     </Button>
                     <Button variant="ghost" size="sm" asChild>
                         <Link href="/auth/login">Giriş Yap</Link>

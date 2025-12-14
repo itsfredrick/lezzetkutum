@@ -54,9 +54,11 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.768 0.191 130.54); /* Lime-500 #84cc16 */
-  --primary-foreground: oklch(1 0 0); /* White text on Lime */
-  --secondary: oklch(0.96 0.02 130); /* Light Lime mix */
+  --primary: oklch(0.623 0.188 135);
+  /* #53a01b Approx */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.96 0.02 130);
+  /* Light Lime mix */
   --secondary-foreground: oklch(0.25 0.05 130);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
@@ -65,7 +67,8 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.768 0.191 130.54); /* Matches Primary */
+  --ring: oklch(0.768 0.191 130.54);
+  /* Matches Primary */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -119,6 +122,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

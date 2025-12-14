@@ -1,4 +1,5 @@
-import { PrismaClient, Role, RecipeDifficulty, RecipeSpiceLevel, ProteinType } from '@prisma/client'
+
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -6,22 +7,59 @@ async function main() {
     console.log('Seeding database...')
 
     // Cleanup
-    await prisma.menuWeekRecipe.deleteMany()
-    await prisma.menuWeek.deleteMany()
-    await prisma.recipeStep.deleteMany()
-    await prisma.recipeIngredient.deleteMany()
-    await prisma.ingredient.deleteMany()
-    await prisma.recipe.deleteMany()
-    await prisma.subscription.deleteMany()
-    await prisma.user.deleteMany()
-    await prisma.coupon.deleteMany()
+    const tablenames = await prisma.$queryRaw<Array<{ name: string }>>`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_prisma_migrations';`
 
-    // Users
+    for (const { name } of tablenames) {
+        try {
+            await prisma.$executeRawUnsafe(`DELETE FROM "${name}";`)
+        } catch (error) {
+            console.log(`Failed to clean ${name}: ${error}`)
+        }
+    }
+
+    // 1. Plans
+    const plans = await Promise.all([
+        prisma.plan.create({
+            data: {
+                name: '2 Kişilik / 3 Öğün',
+                slug: '2-people-3-meals',
+                personCount: 2,
+                mealsPerWeek: 3,
+                basePriceTRY: 600.00,
+                pricePerServingTRY: 100.00,
+                deliveryFeeTRY: 0,
+            }
+        }),
+        prisma.plan.create({
+            data: {
+                name: '4 Kişilik / 3 Öğün',
+                slug: '4-people-3-meals',
+                personCount: 4,
+                mealsPerWeek: 3,
+                basePriceTRY: 1100.00,
+                pricePerServingTRY: 91.66,
+                deliveryFeeTRY: 0,
+            }
+        }),
+        prisma.plan.create({
+            data: {
+                name: '2 Kişilik / 4 Öğün',
+                slug: '2-people-4-meals',
+                personCount: 2,
+                mealsPerWeek: 4,
+                basePriceTRY: 750.00,
+                pricePerServingTRY: 93.75,
+                deliveryFeeTRY: 0,
+            }
+        })
+    ])
+
+    // 2. Users
     const admin = await prisma.user.create({
         data: {
             email: 'admin@lezzetkutum.com',
             name: 'Admin User',
-            role: Role.ADMIN,
+            role: 'ADMIN',
         }
     })
 
@@ -29,55 +67,58 @@ async function main() {
         data: {
             email: 'user@example.com',
             name: 'Ayşe Yılmaz',
-            role: Role.CUSTOMER,
+            role: 'CUSTOMER',
             subscription: {
                 create: {
-                    planName: '2 Kişilik Plan',
-                    peopleCount: 2,
-                    mealsPerWeek: 3,
+                    planId: plans[0].id,
+                    status: 'ACTIVE',
+                    deliveryZone: 'Istanbul-Europe',
+                    deliveryDay: 'Monday',
+                    deliveryWindow: '18:00-21:00'
+                }
+            },
+            addresses: {
+                create: {
+                    title: 'Ev',
+                    city: 'İstanbul',
+                    district: 'Kadıköy',
+                    fullAddress: 'Bağdat Cad. No:1 D:5',
+                    zipCode: '34744'
                 }
             }
         }
     })
 
-    // Ingredients (Sample)
-    const ingredients = ['Tavuk Göğsü', 'Domates', 'Soğan', 'Sarımsak', 'Makarna', 'Pirinç', 'Bulgur', 'Kıyma', 'Patates', 'Havuç', 'Bezelye', 'Mantar', 'Krema', 'Fesleğen', 'Zeytinyağı', 'Tuz', 'Karabiber', 'Kimyon', 'Kekik', 'Pul Biber']
-
-    const ingredientMap = new Map()
-    for (const name of ingredients) {
-        const ing = await prisma.ingredient.create({
-            data: { name, unit: 'adet/g' }
-        })
-        ingredientMap.set(name, ing.id)
-    }
-
-    // Recipes
+    // 3. Recipes (20 Real-ish Recipes)
     const recipesData = [
-        { name: 'Izgara Tavuk ve Kök Sebzeler', slug: 'izgara-tavuk-kok-sebzeler', protein: ProteinType.CHICKEN, time: 30, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.MILD, img: '/assets/images/placeholder_recipe_1.jpg' },
-        { name: 'Mantarlı ve Ispanaklı Lazanya', slug: 'mantarli-ispanakli-lazanya', protein: ProteinType.VEGGIE, time: 45, diff: RecipeDifficulty.MEDIUM, spice: RecipeSpiceLevel.NONE, img: '/assets/images/placeholder_recipe_2.jpg' },
-        { name: 'Anne Köftesi ve Piyaz', slug: 'anne-koftesi-piyaz', protein: ProteinType.BEEF, time: 40, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.MILD, img: '/assets/images/placeholder_recipe_3.jpg' },
-        { name: 'Meksika Usulü Taco', slug: 'meksika-usulu-taco', protein: ProteinType.BEEF, time: 25, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.HOT, img: '/assets/images/placeholder_recipe_4.jpg' },
-        { name: 'Hint Usulü Körili Tavuk', slug: 'hint-usulu-korili-tavuk', protein: ProteinType.CHICKEN, time: 35, diff: RecipeDifficulty.MEDIUM, spice: RecipeSpiceLevel.MEDIUM, img: '/assets/images/placeholder_recipe_5.jpg' },
-        { name: 'Avokadolu Kinoa Salatası', slug: 'avokadolu-kinoa-salatasi', protein: ProteinType.VEGAN, time: 20, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.NONE, img: '/assets/images/placeholder_recipe_6.jpg' },
-        { name: 'Somon ve Kuşkonmaz', slug: 'somon-kuskonmaz', protein: ProteinType.FISH, time: 30, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.NONE, img: '/assets/images/placeholder_recipe_7.jpg' },
-        { name: 'Etli Nohut Yemeği', slug: 'etli-nohut', protein: ProteinType.BEEF, time: 50, diff: RecipeDifficulty.MEDIUM, spice: RecipeSpiceLevel.MILD, img: '/assets/images/placeholder_recipe_8.jpg' },
-        { name: 'Zeytinyağılı Enginar', slug: 'zeytinyagli-enginar', protein: ProteinType.VEGAN, time: 40, diff: RecipeDifficulty.MEDIUM, spice: RecipeSpiceLevel.NONE, img: '/assets/images/placeholder_recipe_9.jpg' },
-        { name: 'Karnıyarık', slug: 'karniyarik', protein: ProteinType.BEEF, time: 60, diff: RecipeDifficulty.HARD, spice: RecipeSpiceLevel.MILD, img: '/assets/images/placeholder_recipe_10.jpg' },
-        // Recipes 11-20
-        { name: 'Mercimek Çorbası', slug: 'mercimek-corbasi', protein: ProteinType.VEGAN, time: 30, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.MILD, img: '/assets/images/placeholder_recipe_11.jpg' },
-        { name: 'Hamburger', slug: 'hamburger', protein: ProteinType.BEEF, time: 25, diff: RecipeDifficulty.MEDIUM, spice: RecipeSpiceLevel.NONE, img: '/assets/images/placeholder_recipe_12.jpg' },
-        { name: 'Sezar Salata', slug: 'sezar-salata', protein: ProteinType.CHICKEN, time: 20, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.NONE, img: '/assets/images/placeholder_recipe_13.jpg' },
-        { name: 'Fırında Levrek', slug: 'firinda-levrek', protein: ProteinType.FISH, time: 45, diff: RecipeDifficulty.MEDIUM, spice: RecipeSpiceLevel.NONE, img: '/assets/images/placeholder_recipe_14.jpg' },
-        { name: 'Falafel Dürüm', slug: 'falafel-durum', protein: ProteinType.VEGAN, time: 40, diff: RecipeDifficulty.MEDIUM, spice: RecipeSpiceLevel.MILD, img: '/assets/images/placeholder_recipe_15.jpg' },
-        { name: 'Taze Fasulye', slug: 'taze-fasulye', protein: ProteinType.VEGAN, time: 40, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.NONE, img: '/assets/images/placeholder_recipe_16.jpg' },
-        { name: 'Hünkar Beğendi', slug: 'hunkar-begendi', protein: ProteinType.BEEF, time: 60, diff: RecipeDifficulty.HARD, spice: RecipeSpiceLevel.NONE, img: '/assets/images/placeholder_recipe_17.jpg' },
-        { name: 'Tavuk Sote', slug: 'tavuk-sote', protein: ProteinType.CHICKEN, time: 30, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.MILD, img: '/assets/images/placeholder_recipe_18.jpg' },
-        { name: 'Makarna Bolonez', slug: 'makarna-bolonez', protein: ProteinType.BEEF, time: 35, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.NONE, img: '/assets/images/placeholder_recipe_19.jpg' },
-        { name: 'Sebzeli Noodle', slug: 'sebzeli-noodle', protein: ProteinType.VEGGIE, time: 15, diff: RecipeDifficulty.EASY, spice: RecipeSpiceLevel.HOT, img: '/assets/images/placeholder_recipe_20.jpg' },
+        { name: 'Izgara Tavuk ve Kök Sebzeler', slug: 'izgara-tavuk', protein: 'CHICKEN', time: 30, diff: 'EASY', spice: 'MILD', img: '/assets/images/recipe_1.png' },
+        { name: 'Mantarlı ve Ispanaklı Lazanya', slug: 'mantarli-lazanya', protein: 'VEGGIE', time: 45, diff: 'MEDIUM', spice: 'NONE', img: '/assets/images/recipe_2.png' },
+        { name: 'Anne Köftesi ve Piyaz', slug: 'anne-koftesi', protein: 'BEEF', time: 40, diff: 'EASY', spice: 'MILD', img: '/assets/images/recipe_3.png' },
+        { name: 'Meksika Usulü Taco', slug: 'meksika-taco', protein: 'BEEF', time: 25, diff: 'EASY', spice: 'HOT', img: '/assets/images/recipe_2.png' }, // reusing img
+        { name: 'Hint Usulü Körili Tavuk', slug: 'korili-tavuk', protein: 'CHICKEN', time: 35, diff: 'MEDIUM', spice: 'MEDIUM', img: '/assets/images/recipe_1.png' },
+        { name: 'Avokadolu Kinoa Salatası', slug: 'avokadolu-kinoa', protein: 'VEGAN', time: 20, diff: 'EASY', spice: 'NONE', img: '/assets/images/recipe_2.png' },
+        { name: 'Somon ve Kuşkonmaz', slug: 'somon-kuskonmaz', protein: 'FISH', time: 30, diff: 'EASY', spice: 'NONE', img: '/assets/images/recipe_3.png' },
+        { name: 'Etli Nohut Yemeği', slug: 'etli-nohut', protein: 'BEEF', time: 50, diff: 'MEDIUM', spice: 'MILD', img: '/assets/images/recipe_1.png' },
+        { name: 'Zeytinyağılı Enginar', slug: 'zeytinyagli-enginar', protein: 'VEGAN', time: 40, diff: 'MEDIUM', spice: 'NONE', img: '/assets/images/recipe_2.png' },
+        { name: 'Karnıyarık', slug: 'karniyarik', protein: 'BEEF', time: 60, diff: 'HARD', spice: 'MILD', img: '/assets/images/recipe_3.png' },
+        // 11-20
+        { name: 'Mercimek Çorbası', slug: 'mercimek-corbasi', protein: 'VEGAN', time: 30, diff: 'EASY', spice: 'MILD', img: '/assets/images/recipe_1.png' },
+        { name: 'Hamburger', slug: 'hamburger', protein: 'BEEF', time: 25, diff: 'MEDIUM', spice: 'NONE', img: '/assets/images/recipe_2.png' },
+        { name: 'Sezar Salata', slug: 'sezar-salata', protein: 'CHICKEN', time: 20, diff: 'EASY', spice: 'NONE', img: '/assets/images/recipe_3.png' },
+        { name: 'Fırında Levrek', slug: 'firinda-levrek', protein: 'FISH', time: 45, diff: 'MEDIUM', spice: 'NONE', img: '/assets/images/recipe_1.png' },
+        { name: 'Falafel Dürüm', slug: 'falafel-durum', protein: 'VEGAN', time: 40, diff: 'MEDIUM', spice: 'MILD', img: '/assets/images/recipe_2.png' },
+        { name: 'Taze Fasulye', slug: 'taze-fasulye', protein: 'VEGAN', time: 40, diff: 'EASY', spice: 'NONE', img: '/assets/images/recipe_3.png' },
+        { name: 'Hünkar Beğendi', slug: 'hunkar-begendi', protein: 'BEEF', time: 60, diff: 'HARD', spice: 'NONE', img: '/assets/images/recipe_1.png' },
+        { name: 'Tavuk Sote', slug: 'tavuk-sote', protein: 'CHICKEN', time: 30, diff: 'EASY', spice: 'MILD', img: '/assets/images/recipe_2.png' },
+        { name: 'Makarna Bolonez', slug: 'makarna-bolonez', protein: 'BEEF', time: 35, diff: 'EASY', spice: 'NONE', img: '/assets/images/recipe_3.png' },
+        { name: 'Sebzeli Noodle', slug: 'sebzeli-noodle', protein: 'VEGGIE', time: 15, diff: 'EASY', spice: 'HOT', img: '/assets/images/recipe_1.png' },
     ]
 
     const createdRecipes = []
     for (const r of recipesData) {
+        const nutrition = JSON.stringify({ protein: 30, carbs: 45, fat: 20 })
+        const allergens = JSON.stringify(r.protein === 'FISH' ? ['fish'] : [])
+
         const recipe = await prisma.recipe.create({
             data: {
                 name: r.name,
@@ -89,6 +130,8 @@ async function main() {
                 spiceLevel: r.spice,
                 proteinType: r.protein,
                 isPublished: true,
+                nutrition,
+                allergens,
                 steps: {
                     create: [
                         { stepNumber: 1, instruction: 'Malzemeleri hazırlayın.' },
@@ -100,28 +143,38 @@ async function main() {
         createdRecipes.push(recipe)
     }
 
-    // Menu Weeks
+    // 4. Menu Weeks (4 weeks ahead)
     const collections = ['İmza Tabaklar', 'Sokak Lezzetleri', 'Ev Klasikleri', 'Hafif & Dengeli', 'Dünya Turu']
-
     const today = new Date()
-    let currentWeek = 24
+
+    // Align to next Monday
+    const nextMonday = new Date(today)
+    nextMonday.setDate(today.getDate() + ((1 + 7 - today.getDay()) % 7))
+    nextMonday.setHours(0, 0, 0, 0)
 
     for (let i = 0; i < 4; i++) {
-        const cutoff = new Date(today)
-        cutoff.setDate(today.getDate() + (i * 7) + 3)
+        const weekStart = new Date(nextMonday)
+        weekStart.setDate(nextMonday.getDate() + (i * 7))
+
+        // Cutoff is 4 days before delivery (Thurs before Mon)
+        const cutoff = new Date(weekStart)
+        cutoff.setDate(weekStart.getDate() - 4)
 
         const menu = await prisma.menuWeek.create({
             data: {
-                year: 2024,
-                weekNumber: currentWeek + i,
+                year: weekStart.getFullYear(),
+                weekNumber: getWeekNumber(weekStart),
+                weekStartDate: weekStart,
                 cutoffDate: cutoff,
                 isPublished: true,
-                isLocked: i === 0 && false, // First week unlocked for testing or locked if desired
+                isLocked: i === 0, // First week might be locked if close
+                city: 'Istanbul',
+                zone: 'Europe'
             }
         })
 
-        // Assign 10 recipes to each week randomly across collections
-        for (let j = 0; j < 10; j++) {
+        // Assign 15 recipes per week
+        for (let j = 0; j < 15; j++) {
             const recipe = createdRecipes[(i * 5 + j) % createdRecipes.length]
             await prisma.menuWeekRecipe.create({
                 data: {
@@ -134,6 +187,14 @@ async function main() {
     }
 
     console.log('Seeding completed.')
+}
+
+function getWeekNumber(d: Date) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    var weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return weekNo;
 }
 
 main()
