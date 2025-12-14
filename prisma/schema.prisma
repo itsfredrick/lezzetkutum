@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum RecipeDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum RecipeSpiceLevel {
+  NONE
+  MILD
+  MEDIUM
+  HOT
+}
+
+enum ProteinType {
+  BEEF
+  CHICKEN
+  FISH
+  VEGGIE
+  VEGAN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PREPARING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscription Subscription?
+  orders       Order[]
+  tickets      Ticket[]
+  credits      CreditLedger[]
+  addresses    Address[]
+  paymentMethods PaymentMethod[]
+}
+
+model Address {
+  id           String @id @default(uuid())
+  userId       String
+  title        String // e.g. "Ev", "İş"
+  fullAddress  String
+  city         String
+  district     String
+  zipCode      String?
+  instructions String?
+  user         User   @relation(fields: [userId], references: [id])
+}
+
+model PaymentMethod {
+  id        String @id @default(uuid())
+  userId    String
+  cardLast4 String
+  cardBrand String
+  isDefault Boolean @default(false)
+  user      User   @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  planName     String   // "2 Kişilik Plan", etc.
+  peopleCount  Int
+  mealsPerWeek Int
+  isActive     Boolean  @default(true)
+  nextDeliveryDate DateTime?
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Recipe {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  description String
+  imageUrl    String
+  timeMinutes Int
+  difficulty  RecipeDifficulty
+  spiceLevel  RecipeSpiceLevel
+  proteinType ProteinType
+  calories    Int?
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  ingredients RecipeIngredient[]
+  steps       RecipeStep[]
+  menuItems   MenuWeekRecipe[]
+}
+
+model Ingredient {
+  id   String @id @default(uuid())
+  name String @unique
+  unit String // g, ml, adet
+
+  recipes RecipeIngredient[]
+}
+
+model RecipeIngredient {
+  id           String     @id @default(uuid())
+  recipeId     String
+  ingredientId String
+  amount       Float
+  recipe       Recipe     @relation(fields: [recipeId], references: [id])
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+}
+
+model RecipeStep {
+  id          String @id @default(uuid())
+  recipeId    String
+  stepNumber  Int
+  instruction String
+  timerSeconds Int?
+  recipe      Recipe @relation(fields: [recipeId], references: [id])
+}
+
+model MenuWeek {
+  id           String   @id @default(uuid())
+  year         Int
+  weekNumber   Int
+  cutoffDate   DateTime
+  isPublished  Boolean  @default(false)
+  isLocked     Boolean  @default(false)
+  
+  recipes      MenuWeekRecipe[]
+
+  @@unique([year, weekNumber])
+}
+
+model MenuWeekRecipe {
+  id         String @id @default(uuid())
+  menuWeekId String
+  recipeId   String
+  collection String // "İmza Tabaklar", "Sokak Lezzetleri" etc.
+  
+  menuWeek   MenuWeek @relation(fields: [menuWeekId], references: [id])
+  recipe     Recipe   @relation(fields: [recipeId], references: [id])
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  userId        String
+  status        OrderStatus @default(PENDING)
+  totalAmount   Decimal
+  deliveryDate  DateTime
+  createdAt     DateTime    @default(now())
+  
+  items         OrderItem[]
+  user          User        @relation(fields: [userId], references: [id])
+}
+
+model OrderItem {
+  id        String @id @default(uuid())
+  orderId   String
+  recipeId  String // Snapshot of recipe
+  quantity  Int
+  order     Order  @relation(fields: [orderId], references: [id])
+}
+
+model Coupon {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  discountAmount Decimal
+  isActive  Boolean  @default(true)
+  expiresAt DateTime?
+}
+
+model Ticket {
+  id        String       @id @default(uuid())
+  userId    String
+  subject   String
+  message   String
+  status    TicketStatus @default(OPEN)
+  createdAt DateTime     @default(now())
+  
+  user      User         @relation(fields: [userId], references: [id])
+}
+
+model CreditLedger {
+  id        String   @id @default(uuid())
+  userId    String
+  amount    Decimal
+  reason    String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model EventLog {
+  id        String   @id @default(uuid())
+  action    String
+  details   String
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,15 @@
+{
+  "Index": {
+    "title": "LezzetKutum",
+    "description": "Fresh ingredients at your doorstep."
+  },
+  "Header": {
+    "howItWorks": "How it Works",
+    "menu": "Menu",
+    "plans": "Plans",
+    "recipes": "Recipes",
+    "login": "Login",
+    "account": "My Account",
+    "getStarted": "Get Started"
+  }
+}

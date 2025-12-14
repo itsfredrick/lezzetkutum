@@ -1,0 +1,15 @@
+{
+  "Index": {
+    "title": "LezzetKutum",
+    "description": "Taze malzemeler kapında."
+  },
+  "Header": {
+    "howItWorks": "Nasıl Çalışır?",
+    "menu": "Menü",
+    "plans": "Paketler",
+    "recipes": "Tarifler",
+    "login": "Giriş Yap",
+    "account": "Hesabım",
+    "getStarted": "Kutunu Oluştur"
+  }
+}
